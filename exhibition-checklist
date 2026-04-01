@@ -1,1 +1,502 @@
-file:///Users/htt-amber/Downloads/exhibition-checklist.html
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>展覽零件清點 | 日本展</title>
+<style>
+  :root {
+    --green: #1D9E75;
+    --green-light: #E1F5EE;
+    --green-dark: #0F6E56;
+    --red: #E24B4A;
+    --red-light: #FCEBEB;
+    --red-dark: #A32D2D;
+    --blue-light: #E6F1FB;
+    --blue-dark: #185FA5;
+    --amber-light: #FAEEDA;
+    --amber-dark: #854F0B;
+    --bg: #ffffff;
+    --bg2: #f5f5f3;
+    --bg3: #eeede8;
+    --text: #1a1a1a;
+    --text2: #666660;
+    --text3: #999990;
+    --border: rgba(0,0,0,0.12);
+    --border2: rgba(0,0,0,0.22);
+    --radius: 10px;
+    --radius-lg: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1e;
+      --bg2: #2c2c2e;
+      --bg3: #3a3a3c;
+      --text: #f0f0ee;
+      --text2: #aeaead;
+      --text3: #787876;
+      --border: rgba(255,255,255,0.10);
+      --border2: rgba(255,255,255,0.20);
+      --green-light: #0d3325;
+      --green-dark: #5DCAA5;
+      --red-light: #3d1212;
+      --red-dark: #f09595;
+      --blue-light: #0c2744;
+      --blue-dark: #85B7EB;
+      --amber-light: #3d2200;
+      --amber-dark: #EF9F27;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif; background: var(--bg3); color: var(--text); min-height: 100vh; }
+
+  /* ── layout ── */
+  .app { max-width: 500px; margin: 0 auto; background: var(--bg); min-height: 100vh; position: relative; }
+  .pb80 { padding-bottom: 80px; }
+
+  /* ── header ── */
+  .header { padding: 16px 16px 12px; background: var(--bg); border-bottom: 0.5px solid var(--border); position: sticky; top: 0; z-index: 30; }
+  .header-top { display: flex; align-items: center; justify-content: space-between; }
+  .header h1 { font-size: 17px; font-weight: 600; color: var(--text); }
+  .header-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .phase-bar { display: flex; gap: 6px; margin-top: 12px; }
+  .phase-btn { flex: 1; padding: 9px 0; border-radius: var(--radius); border: 0.5px solid var(--border2); font-size: 14px; font-weight: 500; cursor: pointer; background: var(--bg2); color: var(--text2); transition: all .15s; }
+  .phase-btn.active { background: var(--green); color: #fff; border-color: var(--green); }
+
+  /* ── tabs ── */
+  .tab-bar { display: flex; background: var(--bg); border-bottom: 0.5px solid var(--border); position: sticky; top: 112px; z-index: 29; }
+  .tab { flex: 1; padding: 11px; text-align: center; font-size: 14px; cursor: pointer; color: var(--text2); border-bottom: 2px solid transparent; transition: all .15s; }
+  .tab.active { color: var(--green); border-bottom-color: var(--green); font-weight: 600; }
+
+  /* ── name + progress ── */
+  .name-row { padding: 10px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 0.5px solid var(--border); background: var(--bg); }
+  .name-row label { font-size: 13px; color: var(--text2); white-space: nowrap; }
+  .name-row input { flex: 1; font-size: 15px; padding: 7px 12px; border-radius: var(--radius); border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text); outline: none; }
+  .name-row input:focus { border-color: var(--green); }
+  .progress-bar { padding: 10px 16px; display: flex; align-items: center; gap: 12px; border-bottom: 0.5px solid var(--border); background: var(--bg); }
+  .progress-track { flex: 1; height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--green); border-radius: 3px; transition: width .4s; }
+  .progress-text { font-size: 12px; color: var(--text2); white-space: nowrap; min-width: 50px; text-align: right; }
+
+  /* ── section ── */
+  .section-title { font-size: 11px; font-weight: 600; color: var(--text3); padding: 14px 16px 6px; letter-spacing: .07em; text-transform: uppercase; }
+
+  /* ── part card ── */
+  .part-card { margin: 0 12px 8px; border: 0.5px solid var(--border); border-radius: var(--radius-lg); background: var(--bg); overflow: hidden; transition: border-color .2s; }
+  .part-card.checked { border-color: var(--green); }
+  .part-card.abnormal { border-color: var(--red); }
+  .part-top { display: flex; gap: 12px; padding: 12px; align-items: center; }
+  .img-wrap { width: 80px; height: 80px; border-radius: var(--radius); overflow: hidden; background: var(--bg2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .img-placeholder { font-size: 11px; color: var(--text3); text-align: center; padding: 4px; line-height: 1.4; }
+  .part-info { flex: 1; min-width: 0; }
+  .part-filename { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .part-note { font-size: 12px; color: var(--text2); margin-top: 3px; }
+  .part-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .btn-check { flex: 1; padding: 9px; border-radius: var(--radius); border: 0.5px solid var(--green); color: var(--green); background: transparent; font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s; }
+  .btn-check.active { background: var(--green); color: #fff; }
+  .btn-abnormal { padding: 9px 14px; border-radius: var(--radius); border: 0.5px solid var(--border2); color: var(--text2); background: transparent; font-size: 13px; cursor: pointer; transition: all .15s; }
+  .btn-abnormal.active { background: var(--red); color: #fff; border-color: var(--red); }
+  .abnormal-input { padding: 0 12px 12px; }
+  .abnormal-input textarea { width: 100%; font-size: 13px; padding: 9px 12px; border-radius: var(--radius); border: 0.5px solid var(--red); background: var(--bg2); color: var(--text); resize: none; height: 64px; outline: none; font-family: inherit; }
+
+  /* ── submit ── */
+  .submit-wrap { padding: 12px 16px; position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 500px; background: var(--bg); border-top: 0.5px solid var(--border); z-index: 20; }
+  .btn-submit { width: 100%; padding: 15px; background: var(--green); color: #fff; border: none; border-radius: var(--radius-lg); font-size: 16px; font-weight: 600; cursor: pointer; transition: opacity .15s; }
+  .btn-submit:active { opacity: .85; }
+  .btn-submit:disabled { background: var(--bg3); color: var(--text3); cursor: not-allowed; }
+
+  /* ── admin ── */
+  .admin-wrap { padding: 12px 12px 80px; }
+  .btn-export { width: 100%; padding: 12px; margin-bottom: 8px; border-radius: var(--radius); border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text); font-size: 14px; cursor: pointer; font-weight: 500; }
+  .btn-clear-all { width: 100%; padding: 10px; border-radius: var(--radius); border: 0.5px solid var(--red); background: transparent; color: var(--red); font-size: 13px; cursor: pointer; margin-bottom: 12px; }
+  .admin-summary { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .summary-card { background: var(--bg2); border-radius: var(--radius); padding: 10px 12px; }
+  .summary-label { font-size: 11px; color: var(--text3); margin-bottom: 4px; }
+  .summary-val { font-size: 20px; font-weight: 600; color: var(--text); }
+  .record-card { border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 12px; margin-bottom: 10px; background: var(--bg); }
+  .record-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+  .record-name { font-size: 15px; font-weight: 600; color: var(--text); }
+  .phase-badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
+  .b-出發 { background: var(--blue-light); color: var(--blue-dark); }
+  .b-佈展 { background: var(--green-light); color: var(--green-dark); }
+  .b-撤展 { background: var(--amber-light); color: var(--amber-dark); }
+  .record-time { font-size: 11px; color: var(--text3); margin-bottom: 8px; }
+  .record-stats { display: flex; gap: 6px; flex-wrap: wrap; }
+  .stat-pill { font-size: 11px; padding: 3px 10px; border-radius: 20px; background: var(--bg2); color: var(--text2); }
+  .stat-warn { background: var(--red-light); color: var(--red-dark); }
+  .abnormal-detail { margin-top: 8px; font-size: 12px; color: var(--red-dark); line-height: 1.6; padding: 8px 10px; background: var(--red-light); border-radius: var(--radius); }
+  .no-rec { text-align: center; padding: 48px 16px; color: var(--text3); font-size: 15px; }
+
+  /* ── loading / error ── */
+  .loading-wrap { padding: 48px 16px; text-align: center; color: var(--text2); }
+  .spinner { width: 30px; height: 30px; border: 2.5px solid var(--border2); border-top-color: var(--green); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 14px; }
+  .err-wrap { padding: 32px 24px; text-align: center; }
+  .err-msg { font-size: 14px; color: var(--red-dark); margin-bottom: 14px; line-height: 1.6; background: var(--red-light); padding: 12px 16px; border-radius: var(--radius); }
+  .btn-retry { padding: 10px 24px; border-radius: var(--radius); border: 1.5px solid var(--green); color: var(--green); background: transparent; font-size: 14px; font-weight: 500; cursor: pointer; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── toast ── */
+  .toast { position: fixed; bottom: 96px; left: 50%; transform: translateX(-50%); background: #222; color: #fff; padding: 11px 22px; border-radius: 24px; font-size: 14px; opacity: 0; transition: opacity .25s; pointer-events: none; z-index: 999; white-space: nowrap; }
+  .toast.show { opacity: 1; }
+
+  /* ── install banner ── */
+  .install-tip { font-size: 11px; color: var(--text3); text-align: center; padding: 8px 16px; border-top: 0.5px solid var(--border); }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <h1>展覽零件清點</h1>
+        <div class="header-sub" id="subtitle">日本展 — 請先選擇清點階段</div>
+      </div>
+    </div>
+    <div class="phase-bar">
+      <button class="phase-btn" id="btn-出發" onclick="setPhase('出發')">出發</button>
+      <button class="phase-btn" id="btn-佈展" onclick="setPhase('佈展')">佈展</button>
+      <button class="phase-btn" id="btn-撤展" onclick="setPhase('撤展')">撤展</button>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tab-bar">
+    <div class="tab active" id="tab-check" onclick="switchTab('check')">清點</div>
+    <div class="tab" id="tab-admin" onclick="switchTab('admin')">後台紀錄</div>
+  </div>
+
+  <!-- CHECK PANEL -->
+  <div id="panel-check" class="pb80">
+    <div class="name-row">
+      <label>清點人</label>
+      <input id="inspector-name" type="text" placeholder="輸入姓名" autocomplete="name">
+    </div>
+    <div class="progress-bar">
+      <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+      <span class="progress-text" id="prog-text">0 / 0</span>
+    </div>
+    <div id="parts-list">
+      <div class="loading-wrap">
+        <div class="spinner"></div>
+        正在從 Google Drive 載入零件圖片…
+      </div>
+    </div>
+    <div class="submit-wrap">
+      <button class="btn-submit" id="btn-submit" onclick="submitChecklist()">送出清點紀錄</button>
+    </div>
+  </div>
+
+  <!-- ADMIN PANEL -->
+  <div id="panel-admin" style="display:none">
+    <div class="admin-wrap">
+      <div class="admin-summary" id="admin-summary"></div>
+      <button class="btn-export" onclick="exportRecords()">📋 匯出所有紀錄（複製文字）</button>
+      <div id="records-list"></div>
+      <button class="btn-clear-all" onclick="clearRecords()">清除所有紀錄</button>
+    </div>
+  </div>
+
+  <div class="install-tip">手機瀏覽器 → 「加入主畫面」可當 App 使用</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── 設定 ──────────────────────────────────────
+const MOLD_FOLDER_ID = '1DHVoA8cKd4_2Usk4LyyGq8lvbM1aFnny';
+const MED_FOLDER_ID  = '1Ykp7-bezwgzlo6zlyQCICLE86KIe6oTL';
+const GDRIVE_API_KEY = 'AIzaSyD-9tSrke72PouQMnMts-7ZVNKXH3BmRqc';
+const STORAGE_KEY    = 'exhibition-checklist-v4';
+
+// 數量備註（依資料夾順序的第幾張，從1開始）
+const MOLD_NOTES = { 5:'透氣 2塊', 21:'散熱葉片 2個', 22:'銅 3個', 23:'銅 2片' };
+const MED_NOTES  = { 9:'6個', 10:'2個', 14:'2個', 15:'2個', 23:'微小 9件組' };
+
+// ── 狀態 ─────────────────────────────────────
+let allParts     = [];
+let checkState   = {};
+let currentPhase = null;
+let dataLoaded   = false;
+
+// ── Google Drive API ──────────────────────────
+async function fetchFolder(folderId) {
+  const url = `https://www.googleapis.com/drive/v3/files`
+    + `?q=%27${folderId}%27+in+parents+and+trashed%3Dfalse`
+    + `&fields=files(id%2Cname)&orderBy=name&key=${GDRIVE_API_KEY}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Google Drive API 錯誤 (${res.status})`);
+  const json = await res.json();
+  if (json.error) throw new Error(json.error.message);
+  return json.files || [];
+}
+
+function thumbUrl(fileId) {
+  return `https://drive.google.com/thumbnail?id=${fileId}&sz=w400`;
+}
+
+// ── 載入零件 ──────────────────────────────────
+async function loadParts() {
+  document.getElementById('parts-list').innerHTML = `
+    <div class="loading-wrap">
+      <div class="spinner"></div>
+      正在從 Google Drive 載入零件圖片…
+    </div>`;
+  try {
+    const [moldFiles, medFiles] = await Promise.all([
+      fetchFolder(MOLD_FOLDER_ID),
+      fetchFolder(MED_FOLDER_ID)
+    ]);
+
+    allParts = [];
+    moldFiles.forEach((f, i) => {
+      allParts.push({ id:`m${i+1}`, cat:'模具類零件', fileId:f.id, name:f.name, note: MOLD_NOTES[i+1]||'' });
+    });
+    medFiles.forEach((f, i) => {
+      allParts.push({ id:`h${i+1}`, cat:'醫療類零件', fileId:f.id, name:f.name, note: MED_NOTES[i+1]||'' });
+    });
+
+    initState();
+    dataLoaded = true;
+    renderParts();
+  } catch(e) {
+    document.getElementById('parts-list').innerHTML = `
+      <div class="err-wrap">
+        <div class="err-msg">
+          無法載入圖片清單<br>
+          <small>${e.message}</small><br><br>
+          <small>請確認 Google Drive 資料夾已設為「知道連結者可以檢視」</small>
+        </div>
+        <button class="btn-retry" onclick="loadParts()">重新嘗試</button>
+      </div>`;
+  }
+}
+
+// ── 初始化狀態 ────────────────────────────────
+function initState() {
+  const fresh = {};
+  allParts.forEach(p => {
+    fresh[p.id] = checkState[p.id] || { checked:false, abnormal:false, note:'' };
+  });
+  checkState = fresh;
+}
+
+// ── 選擇階段 ──────────────────────────────────
+function setPhase(p) {
+  currentPhase = p;
+  document.getElementById('subtitle').textContent = '日本展 — ' + p;
+  ['出發','佈展','撤展'].forEach(x =>
+    document.getElementById('btn-'+x).classList.toggle('active', x===p));
+  checkState = {};
+  if (dataLoaded) { initState(); renderParts(); }
+}
+
+// ── 渲染零件列表 ──────────────────────────────
+function renderParts() {
+  updateProgress();
+  const list = document.getElementById('parts-list');
+  const cats = ['模具類零件','醫療類零件'];
+  list.innerHTML = cats.map(cat => {
+    const parts = allParts.filter(p => p.cat === cat);
+    return `
+      <div class="section-title">${cat}（共 ${parts.length} 件）</div>
+      ${parts.map(p => cardHTML(p)).join('')}
+    `;
+  }).join('');
+}
+
+function cardHTML(p) {
+  const s = checkState[p.id];
+  const cls = 'part-card' + (s.checked?' checked':'') + (s.abnormal?' abnormal':'');
+  const displayName = p.name.replace(/\.[^.]+$/, '');
+  return `
+    <div class="${cls}" id="card-${p.id}">
+      <div class="part-top">
+        <div class="img-wrap">
+          <img src="${thumbUrl(p.fileId)}" loading="lazy" alt="${displayName}"
+            onerror="this.parentNode.innerHTML='<div class=\\'img-placeholder\\'>${displayName}</div>'">
+        </div>
+        <div class="part-info">
+          <div class="part-filename">${displayName}</div>
+          ${p.note ? `<div class="part-note">數量：${p.note}</div>` : ''}
+          <div class="part-actions">
+            <button class="btn-check${s.checked?' active':''}" onclick="toggle('${p.id}','check')">
+              ${s.checked ? '✓ 已清點' : '清點'}
+            </button>
+            <button class="btn-abnormal${s.abnormal?' active':''}" onclick="toggle('${p.id}','abnormal')">
+              異常
+            </button>
+          </div>
+        </div>
+      </div>
+      ${s.abnormal ? `
+        <div class="abnormal-input">
+          <textarea placeholder="描述異常（損壞、遺失、數量不符…）"
+            onchange="setNote('${p.id}',this.value)">${s.note}</textarea>
+        </div>` : ''}
+    </div>`;
+}
+
+// ── 互動 ──────────────────────────────────────
+function toggle(id, type) {
+  if (!currentPhase) { showToast('請先選擇階段'); return; }
+  if (type === 'check')     checkState[id].checked  = !checkState[id].checked;
+  if (type === 'abnormal') {
+    checkState[id].abnormal = !checkState[id].abnormal;
+    if (!checkState[id].abnormal) checkState[id].note = '';
+  }
+  const p = allParts.find(x => x.id === id);
+  const card = document.getElementById('card-'+id);
+  if (card && p) card.outerHTML = cardHTML(p);
+  updateProgress();
+}
+
+function setNote(id, val) { checkState[id].note = val; }
+
+function updateProgress() {
+  const total = allParts.length;
+  const done  = allParts.filter(p => checkState[p.id]?.checked).length;
+  const pct   = total ? Math.round(done / total * 100) : 0;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-text').textContent = `${done} / ${total}`;
+}
+
+// ── 送出紀錄 ──────────────────────────────────
+function submitChecklist() {
+  if (!currentPhase) { showToast('請先選擇階段'); return; }
+  const name = document.getElementById('inspector-name').value.trim();
+  if (!name) { showToast('請填寫清點人姓名'); return; }
+
+  const total     = allParts.length;
+  const checked   = allParts.filter(p => checkState[p.id]?.checked).length;
+  const abnormals = allParts.filter(p => checkState[p.id]?.abnormal);
+
+  const record = {
+    id:        Date.now(),
+    phase:     currentPhase,
+    name,
+    time:      new Date().toLocaleString('zh-TW'),
+    total,
+    checked,
+    abnormals: abnormals.map(p => ({
+      id:       p.id,
+      filename: p.name.replace(/\.[^.]+$/, ''),
+      note:     checkState[p.id].note
+    }))
+  };
+
+  const recs = loadRecords();
+  recs.unshift(record);
+  saveRecords(recs);
+  showToast('清點紀錄已儲存！');
+
+  checkState = {};
+  initState();
+  renderParts();
+  document.getElementById('inspector-name').value = '';
+}
+
+// ── localStorage ─────────────────────────────
+function loadRecords() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+  catch { return []; }
+}
+function saveRecords(r) { localStorage.setItem(STORAGE_KEY, JSON.stringify(r)); }
+
+// ── 後台 ──────────────────────────────────────
+function renderAdmin() {
+  const recs = loadRecords();
+
+  // summary
+  const total    = recs.length;
+  const abnCount = recs.reduce((s,r) => s + (r.abnormals?.length||0), 0);
+  const phases   = {出發:0, 佈展:0, 撤展:0};
+  recs.forEach(r => { if (phases[r.phase] !== undefined) phases[r.phase]++; });
+  document.getElementById('admin-summary').innerHTML = `
+    <div class="summary-card"><div class="summary-label">總紀錄</div><div class="summary-val">${total}</div></div>
+    <div class="summary-card"><div class="summary-label">異常次數</div><div class="summary-val" style="color:var(--red)">${abnCount}</div></div>
+    <div class="summary-card"><div class="summary-label">最後階段</div><div class="summary-val" style="font-size:15px">${recs[0]?.phase || '—'}</div></div>
+  `;
+
+  const el = document.getElementById('records-list');
+  if (!recs.length) { el.innerHTML = `<div class="no-rec">尚無清點紀錄</div>`; return; }
+
+  el.innerHTML = recs.map(r => `
+    <div class="record-card">
+      <div class="record-header">
+        <span class="record-name">${r.name}</span>
+        <span class="phase-badge b-${r.phase}">${r.phase}</span>
+      </div>
+      <div class="record-time">${r.time}</div>
+      <div class="record-stats">
+        <span class="stat-pill">清點 ${r.checked}/${r.total}</span>
+        <span class="stat-pill">完成率 ${Math.round(r.checked/r.total*100)}%</span>
+        ${r.abnormals?.length ? `<span class="stat-pill stat-warn">異常 ${r.abnormals.length} 項</span>` : ''}
+      </div>
+      ${r.abnormals?.length ? `
+        <div class="abnormal-detail">
+          異常零件：${r.abnormals.map(a => a.filename + (a.note ? `（${a.note}）` : '')).join('、')}
+        </div>` : ''}
+    </div>
+  `).join('');
+}
+
+function exportRecords() {
+  const recs = loadRecords();
+  if (!recs.length) { showToast('尚無紀錄可匯出'); return; }
+  const lines = recs.map(r =>
+    `【${r.phase}】${r.name} — ${r.time}\n`
+    + `清點 ${r.checked}/${r.total} 件（完成率 ${Math.round(r.checked/r.total*100)}%）`
+    + (r.abnormals?.length
+      ? `\n⚠️ 異常：${r.abnormals.map(a => a.filename + (a.note?`（${a.note}）`:'')).join('、')}`
+      : '')
+  );
+  const text = lines.join('\n\n---\n\n');
+  navigator.clipboard.writeText(text)
+    .then(() => showToast('已複製到剪貼簿！'))
+    .catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+      showToast('已複製！');
+    });
+}
+
+function clearRecords() {
+  if (!confirm('確定要清除所有清點紀錄？此動作無法復原。')) return;
+  saveRecords([]);
+  renderAdmin();
+  showToast('已清除所有紀錄');
+}
+
+// ── tab 切換 ──────────────────────────────────
+function switchTab(t) {
+  document.getElementById('tab-check').classList.toggle('active', t==='check');
+  document.getElementById('tab-admin').classList.toggle('active', t==='admin');
+  document.getElementById('panel-check').style.display = t==='check' ? 'block' : 'none';
+  document.getElementById('panel-admin').style.display = t==='admin' ? 'block' : 'none';
+  if (t === 'admin') renderAdmin();
+}
+
+// ── toast ────────────────────────────────────
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+// ── 啟動 ─────────────────────────────────────
+loadParts();
+</script>
+</body>
+</html>
